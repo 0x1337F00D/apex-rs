@@ -17,9 +17,9 @@ changes.
   and VFIO-passthrough robustness.
 - Tested on real hardware, including on a KASAN/lockdep/DMA-API-debug kernel.
 
-> **Status:** experimental. Developed and tested on Linux 7.3 (x86-64) with two
-> Edge TPUs passed through to a KVM guest. Not yet tested on bare metal, on
-> arm64 or on other kernel versions. Use at your own risk.
+> **Status:** experimental. Developed and tested on Linux 7.3 (x86-64) with a
+> Dual Edge TPU card, on bare metal and passed through to a KVM guest. Not yet
+> tested on arm64 or on other kernel versions. Use at your own risk.
 
 ## Contents
 
@@ -74,18 +74,20 @@ This builds `build/driver/apex.ko` against the running kernel. Variables:
 
 ## Installing and using
 
-Make sure Google's `apex`/`gasket` modules are not loaded, then:
-
 ```bash
-sudo insmod build/driver/apex.ko
+sudo scripts/install.sh install
 ```
 
-Each TPU appears as `/dev/apex_N` and `/sys/class/apex/apex_N`. To use the
-devices without root, install the udev rule and add users to the `apex` group:
+This installs the module into `/usr/lib/modules/$(uname -r)/updates/` (udev
+loads it at boot through its PCI alias), installs the udev rule, adds the
+invoking user to the `apex` group, releases TPUs held by `vfio-pci` and loads
+the module. It refuses to run while Google's `gasket`/`apex` modules are loaded.
+`sudo scripts/install.sh uninstall` removes it again. The module matches only
+the kernel it was built for: rebuild and reinstall after each kernel update.
 
-```bash
-sudo install -m 0644 udev/60-apex-rs.rules /etc/udev/rules.d/
-```
+Each TPU appears as `/dev/apex_N` (group `apex`, mode 0660) and
+`/sys/class/apex/apex_N`. To try the module without installing it, use
+`sudo insmod build/driver/apex.ko`.
 
 ### Module parameters
 
@@ -257,6 +259,11 @@ PROVE_RCU, DMA-API debugging, debug objects and kmemleak for the same suites;
 `run.sh` takes `APEX_VM_KERNEL`, `APEX_VM_KO` and `APEX_VM_MEM`.
 
 Results on two Edge TPUs (Dual Edge TPU card), Linux 7.3.4:
+
+- on bare metal, with the test image's runtime in Docker (`--device /dev/apex_N`):
+  correct classification on both TPUs at 3.8 ms median, and the concurrency and
+  60-second parallel soak (259 inferences/s per TPU, none wrong) with a clean
+  kernel log;
 
 - all suites pass on the distribution kernel and on the debug kernel, with no
   KASAN, lockdep, DMA-API or debug-object reports and no kmemleak findings;

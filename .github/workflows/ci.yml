@@ -39,6 +39,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: shell syntax
-        run: for f in toolchain.sh vm/*.sh vm/guest/*.sh vm/compat/*.sh vm/debug-kernel/*.sh; do sh -n "$f"; done
+        run: for f in toolchain.sh scripts/*.sh vm/*.sh vm/guest/*.sh vm/compat/*.sh vm/debug-kernel/*.sh; do sh -n "$f"; done
       - name: python syntax
         run: python3 -m py_compile vm/guest/*.py
