@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Edge TPU device nodes from apex-rs (misc devices named apex_N): readable and
+# writable by members of the "apex" group, as with Google's gasket packages.
+SUBSYSTEM=="misc", KERNEL=="apex_[0-9]*", GROUP="apex", MODE="0660"

@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0-only
+[package]
+name = "apex-hosttest"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Host-side tests for the hardware-independent parts of the apex-rs driver"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

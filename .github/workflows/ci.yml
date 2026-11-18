@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Checks that need neither a Rust-enabled kernel tree nor Edge TPU hardware.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host-tests:
+    name: host tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+      - name: cargo test
+        run: cargo test --manifest-path hosttest/Cargo.toml
+
+  format:
+    name: rustfmt (kernel configuration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          components: rustfmt
+      - name: rustfmt --check
+        run: rustfmt --check --config-path .rustfmt.toml driver/apex_main.rs hosttest/src/*.rs
+
+  scripts:
+    name: scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shell syntax
+        run: for f in toolchain.sh vm/*.sh vm/guest/*.sh vm/compat/*.sh vm/debug-kernel/*.sh; do sh -n "$f"; done
+      - name: python syntax
+        run: python3 -m py_compile vm/guest/*.py

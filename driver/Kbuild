@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# apex.ko: the Rust driver plus one tiny C helper object.
+obj-m := apex.o
+apex-y := apex_main.o helpers.o

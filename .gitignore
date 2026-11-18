@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Third-party sources and toolchains fetched for the build (not ours to version).
+/upstream/
+/toolchain/
+# Build and test outputs.
+/build/
+/hosttest/target/
+/tools/*/target/
+/vm/work/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+.*.cmd
+*.d
+Module.symvers
+modules.order
+# Test VM logs stay local.
+/vm/logs/
+__pycache__/

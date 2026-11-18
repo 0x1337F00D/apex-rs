@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Guest userland for the passthrough test VM: Google's own Edge TPU runtime
+# (libedgetpu from the edgetpu_runtime_20221024 release, pycoral 2.0.0 and
+# tflite_runtime 2.5.0.post1 wheels) on Debian bullseye's Python 3.9, plus the
+# pycoral classification example and its test model.
+#
+# Google's Coral apt repository no longer exists, so the GitHub release
+# artifacts are used directly.
+FROM debian:bullseye
+# Bullseye is end of life; its packages now live on archive.debian.org.
+RUN printf '%s\n' \
+      'deb http://archive.debian.org/debian bullseye main' \
+      'deb http://archive.debian.org/debian-security bullseye-security main' \
+      > /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl unzip kmod pciutils procps \
+      python3 python3-pip python3-numpy python3-pil util-linux libusb-1.0-0 \
+ && mkdir -p /opt/coral /tmp/dl && cd /tmp/dl \
+ && curl -fsSLO https://github.com/google-coral/libedgetpu/releases/download/release-grouper/edgetpu_runtime_20221024.zip \
+ && curl -fsSLO https://github.com/google-coral/pycoral/releases/download/v2.0.0/tflite_runtime-2.5.0.post1-cp39-cp39-linux_x86_64.whl \
+ && curl -fsSLO https://github.com/google-coral/pycoral/releases/download/v2.0.0/pycoral-2.0.0-cp39-cp39-linux_x86_64.whl \
+ && sha256sum *.zip *.whl > /opt/coral/SHA256SUMS \
+ && unzip -q edgetpu_runtime_20221024.zip \
+ && install -m 0644 edgetpu_runtime/libedgetpu/direct/k8/libedgetpu.so.1.0 /usr/lib/x86_64-linux-gnu/ \
+ && ln -s libedgetpu.so.1.0 /usr/lib/x86_64-linux-gnu/libedgetpu.so.1 \
+ && ldconfig \
+ && pip3 install --no-deps --no-cache-dir tflite_runtime-*.whl pycoral-*.whl \
+ && cd /opt/coral \
+ && curl -fsSLO https://raw.githubusercontent.com/google-coral/pycoral/master/examples/classify_image.py \
+ && curl -fsSLO https://github.com/google-coral/test_data/raw/master/mobilenet_v2_1.0_224_inat_bird_quant_edgetpu.tflite \
+ && curl -fsSLO https://github.com/google-coral/test_data/raw/master/inat_bird_labels.txt \
+ && curl -fsSLO https://github.com/google-coral/test_data/raw/master/parrot.jpg \
+ && rm -rf /tmp/dl \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
